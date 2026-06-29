@@ -7,6 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Калькулятор тортов</title>
+    <script src="https://unpkg.com/@maxhub/bridge/dist/index.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -242,14 +243,14 @@
         const order = calculate();
         const payload = JSON.stringify(order);
 
-        // Мост Макс
-        if (window.Max && typeof window.Max.sendData === "function") {
-            window.Max.sendData(payload);
+        // MAX Bridge (официальная библиотека)
+        if (window.WebApp && typeof window.WebApp.sendData === "function") {
+            window.WebApp.sendData(payload);
             return;
         }
-        // Слой совместимости (некоторые сборки используют Telegram WebApp API)
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.sendData(payload);
+        // Старый мост Макс
+        if (window.Max && typeof window.Max.sendData === "function") {
+            window.Max.sendData(payload);
             return;
         }
         // Fallback для теста в браузере
