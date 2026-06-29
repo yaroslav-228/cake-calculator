@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Калькулятор тортов</title>
-    <script src="https://unpkg.com/@maxhub/bridge/dist/index.js"></script>
+    <script src="https://st.max.ru/js/max-web-app.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -263,6 +263,7 @@
     }
 
     // ── Инициализация ─────────────────────────────────
+    if (window.WebApp) WebApp.ready();
     calculate();
 </script>
 </body>
