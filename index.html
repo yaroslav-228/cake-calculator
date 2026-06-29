@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расчет стоимости торта</title>
+    <!-- Подключаем стили дизайн-системы MAX UI -->
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 16px; background-color: #f4f5f7; color: #1c1e21; margin: 0; }
+        .max-card { background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); margin-bottom: 16px; }
+        .max-title { font-size: 20px; font-weight: 700; margin-bottom: 16px; text-align: center; color: #007bff; }
+        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #65676b; }
+        select, input { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid #ced4da; border-radius: 8px; font-size: 16px; box-sizing: border-box; background-color: #fff; }
+        .max-btn { width: 100%; background-color: #007bff; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .max-btn:active { background-color: #0056b3; }
+        .result-box { background: #e8f0fe; border-radius: 8px; padding: 12px; text-align: center; font-size: 18px; font-weight: 700; color: #1a73e8; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="max-card">
+        <div class="max-title">🎂 Калькулятор тортов</div>
+        
+        <label>Формат торта:</label>
+        <select id="format" onchange="updateForm()">
+            <option value="standard">Стандарт (одноярусный)</option>
+            <option value="multi">Многоярусный</option>
+            <option value="antigravity">Антигравитация</option>
+        </select>
+
+        <div id="flavor-section">
+            <label>Начинка торта:</label>
+            <select id="flavor" onchange="calculate()">
+                <option value="2400">Шоколадный с клубничной начинкой (2400 руб/кг)</option>
+                <option value="2600">Морковный с грецким орехом и корицей (2600 руб/кг)</option>
+                <option value="2400">Ванильный с манго-маракуйей (2400 руб/кг)</option>
+                <option value="2400">Ванильный с клубничной начинкой (2400 руб/кг)</option>
+                <option value="2600">Сникерс (2600 руб/кг)</option>
+                <option value="2600">Рафаэлло с кокосовой стружкой (2600 руб/кг)</option>
+                <option value="2400">Клубнично-маковый (2400 руб/кг)</option>
+                <option value="2400">Фисташковый с клубникой (2400 руб/кг)</option>
+                <option value="2400">Молочная девочка-ванильно-шоколадная (2400 руб/кг)</option>
+                <option value="2200">Медовый (2200 руб/кг)</option>
+            </select>
+        </div>
+
+        <label>Вес торта (кг, от 2 до 20):</label>
+        <input type="number" id="weight" min="2" max="20" step="0.5" value="2" oninput="calculate()">
+
+        <div class="result-box" id="result">Итоговая стоимость: 4800 руб.</div>
+        
+        <button class="max-btn" onclick="submitOrder()">Выбрать этот торт</button>
+    </div>
+
+    <script>
+        function updateForm() {
+            const format = document.getElementById('format').value;
+            const flavorSection = document.getElementById('flavor-section');
+            // Для многоярусных и антигравитации скрываем начинки (фиксированная цена 2800)
+            if (format === 'standard') {
+                flavorSection.style.display = 'block';
+            } else {
+                flavorSection.style.display = 'none';
+            }
+            calculate();
+        }
+
+        function calculate() {
+            const format = document.getElementById('format').value;
+            let weight = parseFloat(document.getElementById('weight').value);
+            
+            if (isNaN(weight) || weight < 2) weight = 2;
+            if (weight > 20) weight = 20;
+
+            let pricePerKg = 2800;
+            let flavorName = "Для сложных форматов";
+
+            if (format === 'standard') {
+                const flavorSelect = document.getElementById('flavor');
+                pricePerKg = parseFloat(flavorSelect.value);
+                flavorName = flavorSelect.options[flavorSelect.selectedIndex].text.split(" (")[0];
+            } else {
+                flavorName = format === 'multi' ? "Многоярусный" : "Антигравитация";
+            }
+
+            const total = Math.round(pricePerKg * weight);
+            document.getElementById('result').innerText = `Итоговая стоимость: ${total} руб.`;
+            
+            return { format, flavorName, weight, total };
+        }
+
+        function submitOrder() {
+            const orderData = calculate();
+            // Отправляем результат обратно в чат МАКС через встроенный мост (MAX UI WebApp API)
+            if (window.Max && window.Max.sendData) {
+                window.Max.sendData(JSON.stringify(orderData));
+            } else if (window.Telegram && window.Telegram.WebApp) {
+                // Слой совместимости с WebApp движками
+                window.Telegram.WebApp.sendData(JSON.stringify(orderData));
+            } else {
+                alert(`Расчёт готов! Вес: ${orderData.weight}кг, Сумма: ${orderData.total}руб.`);
+            }
+        }
+    </script>
+</body>
+</html>
