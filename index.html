@@ -239,7 +239,7 @@
     }
 
     // ── Отправка заявки ───────────────────────────────
-    function submitOrder() {
+    async function submitOrder() {
         const order = calculate();
         const payload = JSON.stringify(order);
 
@@ -249,18 +249,23 @@
                 const params = new URLSearchParams(raw);
                 const queryId = params.get("query_id");
 
-                // Пробуем все варианты по очереди и показываем что вышло
-                let result = "query_id=" + queryId + "\n";
-
                 if (queryId) {
-                    window.WebApp.withQueryId(queryId, payload);
-                    result += "вызван withQueryId";
-                } else {
-                    window.WebApp.transport.sendEvent("web_app_data_send", { data: payload });
-                    result += "вызван sendEvent";
+                    // Отправляем данные боту через API Макса напрямую
+                    const res = await fetch("https://platform-api2.max.ru/answers/web_app_query", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            query_id: queryId,
+                            message: {
+                                type: "message",
+                                text: payload
+                            }
+                        })
+                    });
+                    const json = await res.json();
+                    alert("Статус: " + res.status + "\n" + JSON.stringify(json));
+                    return;
                 }
-                alert("Отправлено! " + result);
-                return;
             } catch(e) {
                 alert("Ошибка: " + e.message);
             }
