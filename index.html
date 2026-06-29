@@ -243,12 +243,9 @@
         const order = calculate();
         const payload = JSON.stringify(order);
 
-        // Диагностика — покажет что доступно
-        const debug = [
-            "window.WebApp: " + (typeof window.WebApp),
-            "sendData: " + (window.WebApp ? typeof window.WebApp.sendData : "—"),
-        ].join("\n");
-        alert("DEBUG:\n" + debug);
+        // Диагностика — все методы WebApp
+        const keys = window.WebApp ? Object.keys(window.WebApp).join(", ") : "нет";
+        alert("WebApp методы:\n" + keys);
 
         // MAX Bridge (официальная библиотека)
         if (window.WebApp && typeof window.WebApp.sendData === "function") {
