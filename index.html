@@ -243,6 +243,13 @@
         const order = calculate();
         const payload = JSON.stringify(order);
 
+        // Диагностика — покажет что доступно
+        const debug = [
+            "window.WebApp: " + (typeof window.WebApp),
+            "sendData: " + (window.WebApp ? typeof window.WebApp.sendData : "—"),
+        ].join("\n");
+        alert("DEBUG:\n" + debug);
+
         // MAX Bridge (официальная библиотека)
         if (window.WebApp && typeof window.WebApp.sendData === "function") {
             window.WebApp.sendData(payload);
@@ -253,7 +260,7 @@
             window.Max.sendData(payload);
             return;
         }
-        // Fallback для теста в браузере
+        // Fallback
         alert(
             `✅ Расчёт готов!\n` +
             `Формат: ${order.flavorName}\n` +
