@@ -243,23 +243,29 @@
         const order = calculate();
         const payload = JSON.stringify(order);
 
-        // Диагностика — смотрим withQueryId и transport
-        const wq = typeof window.WebApp.withQueryId;
-        const tr = window.WebApp.transport ? Object.keys(window.WebApp.transport).join(", ") : "нет";
-        const qi = window.WebApp.initDataManager ? JSON.stringify(window.WebApp.initDataManager).slice(0,200) : "нет";
-        alert("withQueryId: " + wq + "\ntransport: " + tr + "\ninitDataManager: " + qi);
+        if (window.WebApp) {
+            try {
+                // Достаём query_id из initDataManager
+                const raw = window.WebApp.initDataManager && window.WebApp.initDataManager.rawInitData;
+                const params = new URLSearchParams(raw || "");
+                const queryId = params.get("query_id");
 
-        // MAX Bridge (официальная библиотека)
-        if (window.WebApp && typeof window.WebApp.sendData === "function") {
-            window.WebApp.sendData(payload);
-            return;
+                if (queryId && typeof window.WebApp.withQueryId === "function") {
+                    window.WebApp.withQueryId(queryId, payload);
+                    return;
+                }
+
+                // Fallback — sendEvent через transport
+                if (window.WebApp.transport && typeof window.WebApp.transport.sendEvent === "function") {
+                    window.WebApp.transport.sendEvent("web_app_data_send", { data: payload });
+                    return;
+                }
+            } catch(e) {
+                alert("Ошибка отправки: " + e.message);
+            }
         }
-        // Старый мост Макс
-        if (window.Max && typeof window.Max.sendData === "function") {
-            window.Max.sendData(payload);
-            return;
-        }
-        // Fallback
+
+        // Fallback для теста в браузере
         alert(
             `✅ Расчёт готов!\n` +
             `Формат: ${order.flavorName}\n` +
