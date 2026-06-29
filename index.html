@@ -238,46 +238,51 @@
         return { format, flavorName, weight, pricePerKg, total };
     }
 
+    // ── Сервер бота ───────────────────────────────────
+    const BOT_SERVER = "http://104.238.31.149:5000";
+
     // ── Отправка заявки ───────────────────────────────
     async function submitOrder() {
         const order = calculate();
-        const payload = JSON.stringify(order);
 
+        // Достаём chat_id из initData мини-приложения
         if (window.WebApp) {
             try {
                 const raw = window.WebApp.initDataManager && window.WebApp.initDataManager.rawInitData || "";
                 const params = new URLSearchParams(raw);
-                const queryId = params.get("query_id");
-
-                if (queryId) {
-                    // Отправляем данные боту через API Макса напрямую
-                    const res = await fetch("https://platform-api2.max.ru/answers/web_app_query", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            query_id: queryId,
-                            message: {
-                                type: "message",
-                                text: payload
-                            }
-                        })
-                    });
-                    const json = await res.json();
-                    alert("Статус: " + res.status + "\n" + JSON.stringify(json));
-                    return;
+                const chatRaw = params.get("chat");
+                if (chatRaw) {
+                    const chat = JSON.parse(decodeURIComponent(chatRaw));
+                    order.chat_id = chat.id;
+                }
+                // Если chat нет — берём user_id (личный диалог)
+                if (!order.chat_id) {
+                    const userRaw = params.get("user");
+                    if (userRaw) {
+                        const user = JSON.parse(decodeURIComponent(userRaw));
+                        order.chat_id = user.id;
+                    }
                 }
             } catch(e) {
-                alert("Ошибка: " + e.message);
+                console.error("initData parse error:", e);
             }
         }
 
-        // Fallback для теста в браузере
-        alert(
-            `✅ Расчёт готов!\n` +
-            `Формат: ${order.flavorName}\n` +
-            `Вес: ${order.weight} кг\n` +
-            `Сумма: ${order.total.toLocaleString("ru-RU")} ₽`
-        );
+        try {
+            const res = await fetch(BOT_SERVER + "/order", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(order),
+            });
+            const json = await res.json();
+            if (json.ok) {
+                alert("✅ Заявка отправлена! Менеджер скоро свяжется с вами.");
+            } else {
+                alert("Ошибка: " + JSON.stringify(json));
+            }
+        } catch(e) {
+            alert("Ошибка соединения: " + e.message);
+        }
     }
 
     // ── Инициализация ─────────────────────────────────
