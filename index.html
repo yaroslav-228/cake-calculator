@@ -245,23 +245,24 @@
 
         if (window.WebApp) {
             try {
-                // Достаём query_id из initDataManager
-                const raw = window.WebApp.initDataManager && window.WebApp.initDataManager.rawInitData;
-                const params = new URLSearchParams(raw || "");
+                const raw = window.WebApp.initDataManager && window.WebApp.initDataManager.rawInitData || "";
+                const params = new URLSearchParams(raw);
                 const queryId = params.get("query_id");
 
-                if (queryId && typeof window.WebApp.withQueryId === "function") {
-                    window.WebApp.withQueryId(queryId, payload);
-                    return;
-                }
+                // Пробуем все варианты по очереди и показываем что вышло
+                let result = "query_id=" + queryId + "\n";
 
-                // Fallback — sendEvent через transport
-                if (window.WebApp.transport && typeof window.WebApp.transport.sendEvent === "function") {
+                if (queryId) {
+                    window.WebApp.withQueryId(queryId, payload);
+                    result += "вызван withQueryId";
+                } else {
                     window.WebApp.transport.sendEvent("web_app_data_send", { data: payload });
-                    return;
+                    result += "вызван sendEvent";
                 }
+                alert("Отправлено! " + result);
+                return;
             } catch(e) {
-                alert("Ошибка отправки: " + e.message);
+                alert("Ошибка: " + e.message);
             }
         }
 
