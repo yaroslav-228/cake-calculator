@@ -243,9 +243,11 @@
         const order = calculate();
         const payload = JSON.stringify(order);
 
-        // Диагностика — все методы WebApp
-        const keys = window.WebApp ? Object.keys(window.WebApp).join(", ") : "нет";
-        alert("WebApp методы:\n" + keys);
+        // Диагностика — смотрим withQueryId и transport
+        const wq = typeof window.WebApp.withQueryId;
+        const tr = window.WebApp.transport ? Object.keys(window.WebApp.transport).join(", ") : "нет";
+        const qi = window.WebApp.initDataManager ? JSON.stringify(window.WebApp.initDataManager).slice(0,200) : "нет";
+        alert("withQueryId: " + wq + "\ntransport: " + tr + "\ninitDataManager: " + qi);
 
         // MAX Bridge (официальная библиотека)
         if (window.WebApp && typeof window.WebApp.sendData === "function") {
