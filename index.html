@@ -271,7 +271,10 @@
         try {
             const res = await fetch(BOT_SERVER + "/order", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "1",
+                },
                 body: JSON.stringify(order),
             });
             const json = await res.json();
