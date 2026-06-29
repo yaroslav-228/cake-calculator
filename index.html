@@ -3,104 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Расчет стоимости торта</title>
-    <!-- Подключаем стили дизайн-системы MAX UI -->
+    <title>Калькулятор тортов</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 16px; background-color: #f4f5f7; color: #1c1e21; margin: 0; }
-        .max-card { background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); margin-bottom: 16px; }
-        .max-title { font-size: 20px; font-weight: 700; margin-bottom: 16px; text-align: center; color: #007bff; }
-        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #65676b; }
-        select, input { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid #ced4da; border-radius: 8px; font-size: 16px; box-sizing: border-box; background-color: #fff; }
-        .max-btn { width: 100%; background-color: #007bff; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        .max-btn:active { background-color: #0056b3; }
-        .result-box { background: #e8f0fe; border-radius: 8px; padding: 12px; text-align: center; font-size: 18px; font-weight: 700; color: #1a73e8; margin-bottom: 16px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f4f5f7;
+            color: #1c1e21;
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+            margin-bottom: 14px;
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #65676b;
+            margin-bottom: 6px;
+            margin-top: 14px;
+        }
+        label:first-of-type { margin-top: 0; }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #dde1e7;
+            border-radius: 10px;
+            font-size: 15px;
+            background: #fafbfc;
+            appearance: none;
+            outline: none;
+            transition: border-color .2s;
+        }
+        select:focus, input[type="number"]:focus {
+            border-color: #007bff;
+            background: #fff;
+        }
+
+        /* Ползунок веса */
+        .weight-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 4px;
+        }
+        input[type="range"] {
+            flex: 1;
+            accent-color: #007bff;
+            height: 4px;
+        }
+        .weight-value {
+            min-width: 52px;
+            text-align: right;
+            font-size: 16px;
+            font-weight: 700;
+            color: #007bff;
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #e8f0fe 0%, #dbeafe 100%);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            margin-top: 18px;
+        }
+        .result-label {
+            font-size: 13px;
+            color: #5f8ee8;
+            margin-bottom: 4px;
+        }
+        .result-price {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1a73e8;
+        }
+        .result-detail {
+            font-size: 13px;
+            color: #5f8ee8;
+            margin-top: 4px;
+        }
+
+        .btn {
+            width: 100%;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: background .2s, transform .1s;
+            letter-spacing: .3px;
+        }
+        .btn:active { background: #0056b3; transform: scale(.98); }
+
+        .hint {
+            font-size: 12px;
+            color: #9aa0ab;
+            text-align: center;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="max-card">
-        <div class="max-title">🎂 Калькулятор тортов</div>
-        
-        <label>Формат торта:</label>
-        <select id="format" onchange="updateForm()">
-            <option value="standard">Стандарт (одноярусный)</option>
-            <option value="multi">Многоярусный</option>
-            <option value="antigravity">Антигравитация</option>
+<div class="card">
+    <div class="title">🎂 Калькулятор тортов</div>
+
+    <!-- Формат -->
+    <label>Формат торта</label>
+    <select id="format" onchange="onFormatChange()">
+        <option value="standard">Одноярусный (стандарт)</option>
+        <option value="multi">Многоярусный</option>
+        <option value="antigravity">Антигравитация</option>
+    </select>
+
+    <!-- Начинка (только для стандарта) -->
+    <div id="flavor-wrap">
+        <label>Начинка</label>
+        <select id="flavor" onchange="calculate()">
+            <option value="2400">Шоколадный с клубничной начинкой — 2 400 ₽/кг</option>
+            <option value="2600">Морковный с грецким орехом и корицей (апельсин, персик) — 2 600 ₽/кг</option>
+            <option value="2400">Ванильный с манго-маракуйей — 2 400 ₽/кг</option>
+            <option value="2400">Ванильный с клубничной начинкой — 2 400 ₽/кг</option>
+            <option value="2600">Сникерс — 2 600 ₽/кг</option>
+            <option value="2600">Рафаэлло с кокосовой стружкой — 2 600 ₽/кг</option>
+            <option value="2400">Клубнично-маковый — 2 400 ₽/кг</option>
+            <option value="2400">Фисташковый с клубникой — 2 400 ₽/кг</option>
+            <option value="2400">Молочная девочка (ванильно-шоколадная) — 2 400 ₽/кг</option>
+            <option value="2200">Медовый — 2 200 ₽/кг</option>
         </select>
-
-        <div id="flavor-section">
-            <label>Начинка торта:</label>
-            <select id="flavor" onchange="calculate()">
-                <option value="2400">Шоколадный с клубничной начинкой (2400 руб/кг)</option>
-                <option value="2600">Морковный с грецким орехом и корицей (2600 руб/кг)</option>
-                <option value="2400">Ванильный с манго-маракуйей (2400 руб/кг)</option>
-                <option value="2400">Ванильный с клубничной начинкой (2400 руб/кг)</option>
-                <option value="2600">Сникерс (2600 руб/кг)</option>
-                <option value="2600">Рафаэлло с кокосовой стружкой (2600 руб/кг)</option>
-                <option value="2400">Клубнично-маковый (2400 руб/кг)</option>
-                <option value="2400">Фисташковый с клубникой (2400 руб/кг)</option>
-                <option value="2400">Молочная девочка-ванильно-шоколадная (2400 руб/кг)</option>
-                <option value="2200">Медовый (2200 руб/кг)</option>
-            </select>
-        </div>
-
-        <label>Вес торта (кг, от 2 до 20):</label>
-        <input type="number" id="weight" min="2" max="20" step="0.5" value="2" oninput="calculate()">
-
-        <div class="result-box" id="result">Итоговая стоимость: 4800 руб.</div>
-        
-        <button class="max-btn" onclick="submitOrder()">Выбрать этот торт</button>
     </div>
 
-    <script>
-        function updateForm() {
-            const format = document.getElementById('format').value;
-            const flavorSection = document.getElementById('flavor-section');
-            // Для многоярусных и антигравитации скрываем начинки (фиксированная цена 2800)
-            if (format === 'standard') {
-                flavorSection.style.display = 'block';
-            } else {
-                flavorSection.style.display = 'none';
-            }
-            calculate();
+    <!-- Вес -->
+    <label>Вес торта: <span id="weight-label">2,0 кг</span></label>
+    <div class="weight-row">
+        <input type="range" id="weight-range" min="2" max="20" step="0.5" value="2"
+               oninput="onWeightChange(this.value)">
+        <div class="weight-value" id="weight-display">2,0 кг</div>
+    </div>
+
+    <!-- Результат -->
+    <div class="result-box">
+        <div class="result-label">Итоговая стоимость</div>
+        <div class="result-price" id="result-price">4 800 ₽</div>
+        <div class="result-detail" id="result-detail">2,0 кг × 2 400 ₽/кг</div>
+    </div>
+
+    <button class="btn" onclick="submitOrder()">Выбрать этот торт ✅</button>
+    <div class="hint">После нажатия заявка уйдёт менеджеру в чат</div>
+</div>
+
+<script>
+    // ── Состояние ─────────────────────────────────────
+    let currentWeight = 2;
+
+    // ── Форматирование числа ──────────────────────────
+    function fmt(n) {
+        return n.toLocaleString("ru-RU");
+    }
+    function fmtW(w) {
+        return w.toFixed(1).replace(".", ",") + " кг";
+    }
+
+    // ── Обновить отображение веса ─────────────────────
+    function onWeightChange(val) {
+        currentWeight = parseFloat(val);
+        document.getElementById("weight-label").textContent  = fmtW(currentWeight);
+        document.getElementById("weight-display").textContent = fmtW(currentWeight);
+        calculate();
+    }
+
+    // ── Переключение формата ──────────────────────────
+    function onFormatChange() {
+        const fmt_ = document.getElementById("format").value;
+        document.getElementById("flavor-wrap").style.display =
+            fmt_ === "standard" ? "block" : "none";
+        calculate();
+    }
+
+    // ── Расчёт ───────────────────────────────────────
+    function calculate() {
+        const format = document.getElementById("format").value;
+        const weight = currentWeight;
+
+        let pricePerKg, flavorName;
+
+        if (format === "standard") {
+            const sel = document.getElementById("flavor");
+            pricePerKg = parseFloat(sel.value);
+            // Достаём название без цены (текст до " —")
+            flavorName = sel.options[sel.selectedIndex].text.split(" —")[0].trim();
+        } else {
+            pricePerKg = 2800;
+            flavorName = format === "multi" ? "Многоярусный" : "Антигравитация";
         }
 
-        function calculate() {
-            const format = document.getElementById('format').value;
-            let weight = parseFloat(document.getElementById('weight').value);
-            
-            if (isNaN(weight) || weight < 2) weight = 2;
-            if (weight > 20) weight = 20;
+        const total = Math.round(pricePerKg * weight);
 
-            let pricePerKg = 2800;
-            let flavorName = "Для сложных форматов";
+        document.getElementById("result-price").textContent  = fmt(total) + " ₽";
+        document.getElementById("result-detail").textContent =
+            `${fmtW(weight)} × ${fmt(pricePerKg)} ₽/кг`;
 
-            if (format === 'standard') {
-                const flavorSelect = document.getElementById('flavor');
-                pricePerKg = parseFloat(flavorSelect.value);
-                flavorName = flavorSelect.options[flavorSelect.selectedIndex].text.split(" (")[0];
-            } else {
-                flavorName = format === 'multi' ? "Многоярусный" : "Антигравитация";
-            }
+        return { format, flavorName, weight, pricePerKg, total };
+    }
 
-            const total = Math.round(pricePerKg * weight);
-            document.getElementById('result').innerText = `Итоговая стоимость: ${total} руб.`;
-            
-            return { format, flavorName, weight, total };
+    // ── Отправка заявки ───────────────────────────────
+    function submitOrder() {
+        const order = calculate();
+        const payload = JSON.stringify(order);
+
+        // Мост Макс
+        if (window.Max && typeof window.Max.sendData === "function") {
+            window.Max.sendData(payload);
+            return;
         }
-
-        function submitOrder() {
-            const orderData = calculate();
-            // Отправляем результат обратно в чат МАКС через встроенный мост (MAX UI WebApp API)
-            if (window.Max && window.Max.sendData) {
-                window.Max.sendData(JSON.stringify(orderData));
-            } else if (window.Telegram && window.Telegram.WebApp) {
-                // Слой совместимости с WebApp движками
-                window.Telegram.WebApp.sendData(JSON.stringify(orderData));
-            } else {
-                alert(`Расчёт готов! Вес: ${orderData.weight}кг, Сумма: ${orderData.total}руб.`);
-            }
+        // Слой совместимости (некоторые сборки используют Telegram WebApp API)
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.sendData(payload);
+            return;
         }
-    </script>
+        // Fallback для теста в браузере
+        alert(
+            `✅ Расчёт готов!\n` +
+            `Формат: ${order.flavorName}\n` +
+            `Вес: ${order.weight} кг\n` +
+            `Сумма: ${order.total.toLocaleString("ru-RU")} ₽`
+        );
+    }
+
+    // ── Инициализация ─────────────────────────────────
+    calculate();
+</script>
 </body>
 </html>
